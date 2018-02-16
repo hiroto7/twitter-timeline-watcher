@@ -1,7 +1,7 @@
 import * as Twitter from 'twitter';
-import {Tweet} from './tweet';
-import {TimelineWatcher, AbstractTimelineWatcher, StreamWatcher, RESTWatcher} from './timeline-watcher';
-import {TweetHandler, AbstractTweetHandler} from './tweet-handler';
+import {Tweet} from './index';
+import {TimelineWatcher, AbstractTimelineWatcher, StreamWatcher, RESTWatcher} from './index';
+import {TweetHandler, AbstractTweetHandler} from './index';
 import * as keys from './keys.json';
 
 class TweetHandlerTest extends AbstractTweetHandler {
