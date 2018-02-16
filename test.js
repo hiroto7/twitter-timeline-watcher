@@ -17,7 +17,6 @@ class TweetHandlerTest extends tweet_handler_1.AbstractTweetHandler {
         this.count++;
     }
 }
-exports.TweetHandlerTest = TweetHandlerTest;
 const client = new Twitter(keys);
 const handler = new TweetHandlerTest(client);
 //*

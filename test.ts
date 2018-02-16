@@ -4,7 +4,7 @@ import {TimelineWatcher, AbstractTimelineWatcher, StreamWatcher, RESTWatcher} fr
 import {TweetHandler, AbstractTweetHandler} from './tweet-handler';
 import * as keys from './keys.json';
 
-export class TweetHandlerTest extends AbstractTweetHandler {
+class TweetHandlerTest extends AbstractTweetHandler {
   client: Twitter;
   private count: number = 0;
 
