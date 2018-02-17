@@ -1,69 +1,54 @@
 import * as Twitter from 'twitter';
-import {Tweet} from './tweet';
-import {ClientUser} from './client-user';
-import {TweetHandler} from './tweet-handler';
+import {EventEmitter} from 'events';
+import {Tweet} from './tweet'
 
-export interface TimelineWatcher {
-  handler: TweetHandler;
-
-  start(): void;
-  onNewTweet(tweet: Tweet): void;
-}
-
-export abstract class AbstractTimelineWatcher extends ClientUser implements TimelineWatcher {
+export abstract class TimelineWatcher extends EventEmitter {
   client: Twitter;
-  handler: TweetHandler;
 
-  constructor(client: Twitter, handler: TweetHandler) {
-    super(client);
-    this.handler = handler;
+  constructor(client: Twitter) {
+    super();
+    this.client = client;
   }
 
   abstract start(): void;
-  
-  onNewTweet(tweet: Tweet): void {
-    this.handler.handle(tweet);
-  }
+  abstract stop(): void;
 }
 
-export class StreamWatcher extends AbstractTimelineWatcher {
-  client: Twitter;
-  handler: TweetHandler;
+export class StreamWatcher extends TimelineWatcher {
   path: string;
-  params: string;
+  params?: any;
+  private stream: EventEmitter;
+  private listener: (...args: any[]) => void;
 
-  constructor({client, handler, path, params}: {client: Twitter, handler: TweetHandler, path: string, params?: any}) {
-    super(client, handler);
+  constructor({client, path, params}: {client: Twitter, path: string, params?: any}) {
+    super(client);
     this.path = path;
     this.params = params;
   }
 
   start(): void {
-    const stream = this.client.stream(this.path, this.params);
-    stream.on('data', raw => {
-      const tweet: Tweet = new Tweet(raw);
-      this.onNewTweet(tweet);
-    });
-    stream.on('error', error => {
-      console.error(error);
-    });
+    this.stream = this.client.stream(this.path, this.params);
+    this.listener = raw => {
+      const tweet = new Tweet(raw);
+      this.emit('tweet', tweet);
+    };
+    this.stream.on('data', this.listener);
+  }
+
+  stop(): void {
+    this.stream.removeListener('data', this.listener);
   }
 }
 
-export class RESTWatcher extends AbstractTimelineWatcher {
-  client: Twitter;
-  handler: TweetHandler;
+export class RESTWatcher extends TimelineWatcher {
   path: string;
-  params: any;
+  params?: any;
   delay: number;
   private lastTweet: Tweet;
+  private timer: NodeJS.Timer;
 
-  constructor({
-    client, handler, path, params, delay
-  }: {
-    client: Twitter, handler: TweetHandler, path: string, params?: any, delay: number
-  }) {
-    super(client, handler);
+  constructor({client, path, params, delay}: {client: Twitter, path: string, params?: any, delay: number}) {
+    super(client);
     this.path = path;
     this.params = params;
     this.delay = delay;
@@ -74,7 +59,7 @@ export class RESTWatcher extends AbstractTimelineWatcher {
       const raws: any[] = await this.client.get(this.path, this.params);
       const tweet: Tweet = new Tweet(raws[0]);
       this.lastTweet = tweet;
-      setInterval(() => {
+      this.timer = setInterval(() => {
         this.load();
       }, this.delay);
     } catch (error) {
@@ -90,10 +75,14 @@ export class RESTWatcher extends AbstractTimelineWatcher {
         const tweet: Tweet = new Tweet(raw);
         if (tweet.compareTo(this.lastTweet) <= 0) continue;
         this.lastTweet = tweet;
-        this.onNewTweet(tweet);
+        this.emit('tweet', tweet);
       }
     } catch (error) {
       console.error(error);
     }
+  }
+
+  stop(): void {
+    clearInterval(this.timer);
   }
 }

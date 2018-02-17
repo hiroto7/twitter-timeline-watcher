@@ -1,31 +1,45 @@
 import * as Twitter from 'twitter';
 import {Tweet} from './index';
-import {TimelineWatcher, AbstractTimelineWatcher, StreamWatcher, RESTWatcher} from './index';
-import {TweetHandler, AbstractTweetHandler} from './index';
+import {TimelineWatcher, StreamWatcher, RESTWatcher} from './index';
 import * as keys from './keys.json';
 
-class TweetHandlerTest extends AbstractTweetHandler {
-  client: Twitter;
-  private count: number = 0;
+class Test {
+  watcher: TimelineWatcher;
+  count: number;
 
-  handle(tweet: Tweet): void {
-    console.log(`[${this.count}] ${'-'.repeat(100)}`);
+  constructor(watcher: TimelineWatcher) {
+    this.watcher = watcher;
+    this.count = 0;
+  }
+
+  private handle(tweet: Tweet) {
+    const header = `[${this.count}]`;
+    const line = '-'.repeat(process.stdout.columns - header.length - 1);
+    console.log(`${header} ${line}`);
     console.log(tweet.toString());
-    console.log(tweet.createdAt);
-    // console.log(tweet);
+    if (tweet.source) console.log(tweet.source.name);
+    if (tweet.createdAt) console.log(tweet.createdAt.toLocaleString());
     this.count++;
+  }
+
+  start() {
+    this.watcher.on('tweet', (tweet: Tweet) => {
+      this.handle(tweet);
+    });
+    this.watcher.start();
   }
 }
 
 const client: Twitter = new Twitter(keys);
-const handler: TweetHandler = new TweetHandlerTest(client);
+const watchers: TimelineWatcher[] = [
+  new StreamWatcher({client, path: 'user'}),
+  new RESTWatcher({
+    client: client,
+    path: 'statuses/home_timeline',
+    params: {count: 50},
+    delay: 1000 * 60
+  })
+];
 
-//*
-const watcher: TimelineWatcher = new StreamWatcher({client, handler, path: 'user'});
-/*/
-const watcher: TimelineWatcher = new RESTWatcher({client, handler, path: 'statuses/home_timeline', params: {
-  count: 50
-}, delay: 1000 * 60});
-//*/
-
-watcher.start();
+new Test(watchers[0]).start();
+// new Test(watchers[1]).start();

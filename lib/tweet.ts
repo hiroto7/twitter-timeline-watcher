@@ -33,12 +33,12 @@ export class Tweet extends JSONHolder {
   }
 
   via(name: string): boolean {
-    if (!this.source) throw new TypeError();
+    if (!this.source) throw new Error();
     return this.source.name === name;
   }
 
   compareTo(tweet2: Tweet): number {
-    if (!this.raw.id_str || !tweet2.raw.id_str) throw new TypeError();
+    if (!this.raw.id_str || !tweet2.raw.id_str) throw new Error();
     const id1: BigNumber = new BigNumber(this.raw.id_str);
     const id2: BigNumber = new BigNumber(tweet2.raw.id_str);
     return id1.comparedTo(id2);
@@ -79,7 +79,7 @@ class Source extends JSONHolder {
   private upgrade(): void {
     const re: RegExp = /^<a href="(.*?)".*?>(.*?)<\/a>$/;
     const array: string[] | null = re.exec(this.raw);
-    if (array === null) throw new TypeError();
+    if (array === null) throw new Error();
     this.website = new URL(array[1]);
     this.name = array[2];
   }

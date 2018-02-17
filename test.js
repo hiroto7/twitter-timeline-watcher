@@ -2,29 +2,40 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const Twitter = require("twitter");
 const index_1 = require("./index");
-const index_2 = require("./index");
 const keys = require("./keys.json");
-class TweetHandlerTest extends index_2.AbstractTweetHandler {
-    constructor() {
-        super(...arguments);
+class Test {
+    constructor(watcher) {
+        this.watcher = watcher;
         this.count = 0;
     }
     handle(tweet) {
-        console.log(`[${this.count}] ${'-'.repeat(100)}`);
+        const header = `[${this.count}]`;
+        const line = '-'.repeat(process.stdout.columns - header.length - 1);
+        console.log(`${header} ${line}`);
         console.log(tweet.toString());
-        console.log(tweet.createdAt);
-        // console.log(tweet);
+        if (tweet.source)
+            console.log(tweet.source.name);
+        if (tweet.createdAt)
+            console.log(tweet.createdAt.toLocaleString());
         this.count++;
+    }
+    start() {
+        this.watcher.on('tweet', (tweet) => {
+            this.handle(tweet);
+        });
+        this.watcher.start();
     }
 }
 const client = new Twitter(keys);
-const handler = new TweetHandlerTest(client);
-//*
-const watcher = new index_1.StreamWatcher({ client, handler, path: 'user' });
-/*/
-const watcher: TimelineWatcher = new RESTWatcher({client, handler, path: 'statuses/home_timeline', params: {
-  count: 50
-}, delay: 1000 * 60});
-//*/
-watcher.start();
+const watchers = [
+    new index_1.StreamWatcher({ client, path: 'user' }),
+    new index_1.RESTWatcher({
+        client: client,
+        path: 'statuses/home_timeline',
+        params: { count: 50 },
+        delay: 1000 * 60
+    })
+];
+new Test(watchers[0]).start();
+// new Test(watchers[1]).start();
 //# sourceMappingURL=test.js.map
