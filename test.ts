@@ -24,7 +24,6 @@ class Test {
     this.watcher.on('tweet', (tweet: Tweet) => {
       this.handle(tweet);
     });
-    this.watcher.start();
   }
 }
 

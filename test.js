@@ -21,7 +21,6 @@ class Test {
         this.watcher.on('tweet', (tweet) => {
             this.handle(tweet);
         });
-        this.watcher.start();
     }
 }
 const client = new Twitter(keys);

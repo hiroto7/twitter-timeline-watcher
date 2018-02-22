@@ -1,34 +1,52 @@
 import * as Twitter from 'twitter';
 import {EventEmitter} from 'events';
-import {Tweet} from './tweet'
+import {Tweet} from './tweet';
+import {TimelineGetter} from './timeline-getter';
 
-export abstract class TimelineWatcher extends EventEmitter {
-  client: Twitter;
+export abstract class TimelineWatcher extends EventEmitter {}
 
-  constructor(client: Twitter) {
+export abstract class WatcherStarter extends TimelineWatcher {
+  helper: StartableWatcher;
+  
+  constructor(helper) {
     super();
-    this.client = client;
+    this.helper = helper;
+    this.helper.on('tweet', (tweet: Tweet): void => {
+      this.emit('tweet', tweet);
+    })
+    this.helper.start();
   }
+}
 
+export abstract class StartableWatcher extends TimelineWatcher {
   abstract start(): void;
   abstract stop(): void;
 }
 
-export class StreamWatcher extends TimelineWatcher {
+export class StreamWatcher extends WatcherStarter {
+  constructor({client, path, params}: {client: Twitter, path: string, params?: any}) {
+    const helper = new StreamWatcherHelper({client, path, params});
+    super(helper);
+  }
+}
+
+export class StreamWatcherHelper extends StartableWatcher {
+  client: Twitter;
   path: string;
   params?: any;
   private stream: EventEmitter;
   private listener: (...args: any[]) => void;
 
   constructor({client, path, params}: {client: Twitter, path: string, params?: any}) {
-    super(client);
+    super();
+    this.client = client;
     this.path = path;
     this.params = params;
   }
 
   start(): void {
     this.stream = this.client.stream(this.path, this.params);
-    this.listener = raw => {
+    this.listener = (raw: any): void => {
       const tweet = new Tweet(raw);
       this.emit('tweet', tweet);
     };
@@ -40,25 +58,29 @@ export class StreamWatcher extends TimelineWatcher {
   }
 }
 
-export class RESTWatcher extends TimelineWatcher {
-  path: string;
-  params?: any;
+export class RESTWatcher extends WatcherStarter {
+  constructor({client, path, params, delay}: {client: Twitter, path: string, params?: any, delay: number}) {
+    const helper = new RESTWatcherHelper({client, path, params, delay});
+    super(helper);
+  }
+}
+
+class RESTWatcherHelper extends StartableWatcher {
   delay: number;
+  private getter: TimelineGetter;
   private lastTweet: Tweet;
   private timer: NodeJS.Timer;
 
   constructor({client, path, params, delay}: {client: Twitter, path: string, params?: any, delay: number}) {
-    super(client);
-    this.path = path;
-    this.params = params;
+    super();
     this.delay = delay;
+    this.getter = new TimelineGetter({client, path, params});
   }
 
   async start(): Promise<void> {
     try {
-      const raws: any[] = await this.client.get(this.path, this.params);
-      const tweet: Tweet = new Tweet(raws[0]);
-      this.lastTweet = tweet;
+      const tweets: Tweet[] = await this.getter.get();
+      this.lastTweet = tweets[0];
       this.timer = setInterval(() => {
         this.load();
       }, this.delay);
@@ -69,10 +91,9 @@ export class RESTWatcher extends TimelineWatcher {
 
   private async load(): Promise<void> {
     try {
-      const raws: any[] = await this.client.get(this.path, this.params);
-      raws.reverse();
-      for (const raw of raws) {
-        const tweet: Tweet = new Tweet(raw);
+      const tweets: Tweet[] = await this.getter.get();
+      tweets.reverse();
+      for (const tweet of tweets) {
         if (tweet.compareTo(this.lastTweet) <= 0) continue;
         this.lastTweet = tweet;
         this.emit('tweet', tweet);
