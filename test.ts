@@ -13,9 +13,7 @@ class Test {
   }
 
   private handle(tweet: Tweet) {
-    const header = `[${this.count}]`;
-    const line = '-'.repeat(process.stdout.columns - header.length - 1);
-    console.log(`${header} ${line}`);
+    console.log(`[${this.count}]`);
     console.log(tweet.toString());
     if (tweet.source) console.log(tweet.source.name);
     if (tweet.createdAt) console.log(tweet.createdAt.toLocaleString());

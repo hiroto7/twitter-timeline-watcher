@@ -9,9 +9,7 @@ class Test {
         this.count = 0;
     }
     handle(tweet) {
-        const header = `[${this.count}]`;
-        const line = '-'.repeat(process.stdout.columns - header.length - 1);
-        console.log(`${header} ${line}`);
+        console.log(`[${this.count}]`);
         console.log(tweet.toString());
         if (tweet.source)
             console.log(tweet.source.name);
