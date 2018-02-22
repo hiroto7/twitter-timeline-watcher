@@ -1,12 +1,12 @@
 import * as Twitter from 'twitter';
-import {Tweet} from './tweet';
+import { Tweet } from './tweet';
 
 export class TimelineGetter {
   client: Twitter;
   path: string;
   params: any;
 
-  constructor({client, path, params}: {client: Twitter, path: string, params?: any}) {
+  constructor({ client, path, params }: { client: Twitter, path: string, params?: any }) {
     this.client = client;
     this.path = path;
     this.params = params;

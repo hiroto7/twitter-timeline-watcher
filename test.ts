@@ -1,6 +1,6 @@
 import * as Twitter from 'twitter';
-import {Tweet} from './index';
-import {TimelineWatcher, StreamWatcher, RESTWatcher} from './index';
+import { Tweet } from './index';
+import { TimelineWatcher, StreamWatcher, RESTWatcher } from './index';
 import * as keys from './keys.json';
 
 class Test {
@@ -29,11 +29,11 @@ class Test {
 
 const client: Twitter = new Twitter(keys);
 const watchers: TimelineWatcher[] = [
-  new StreamWatcher({client, path: 'user'}),
+  new StreamWatcher({ client, path: 'user' }),
   new RESTWatcher({
     client: client,
     path: 'statuses/home_timeline',
-    params: {count: 50},
+    params: { count: 50 },
     delay: 1000 * 60
   })
 ];

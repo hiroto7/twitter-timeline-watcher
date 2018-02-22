@@ -1,13 +1,13 @@
 import * as Twitter from 'twitter';
-import {EventEmitter} from 'events';
-import {Tweet} from './tweet';
-import {TimelineGetter} from './timeline-getter';
+import { EventEmitter } from 'events';
+import { Tweet } from './tweet';
+import { TimelineGetter } from './timeline-getter';
 
-export abstract class TimelineWatcher extends EventEmitter {}
+export abstract class TimelineWatcher extends EventEmitter { }
 
 export abstract class WatcherStarter extends TimelineWatcher {
   helper: StartableWatcher;
-  
+
   constructor(helper) {
     super();
     this.helper = helper;
@@ -24,8 +24,8 @@ export abstract class StartableWatcher extends TimelineWatcher {
 }
 
 export class StreamWatcher extends WatcherStarter {
-  constructor({client, path, params}: {client: Twitter, path: string, params?: any}) {
-    const helper = new StreamWatcherHelper({client, path, params});
+  constructor({ client, path, params }: { client: Twitter, path: string, params?: any }) {
+    const helper = new StreamWatcherHelper({ client, path, params });
     super(helper);
   }
 }
@@ -37,7 +37,7 @@ export class StreamWatcherHelper extends StartableWatcher {
   private stream: EventEmitter;
   private listener: (...args: any[]) => void;
 
-  constructor({client, path, params}: {client: Twitter, path: string, params?: any}) {
+  constructor({ client, path, params }: { client: Twitter, path: string, params?: any }) {
     super();
     this.client = client;
     this.path = path;
@@ -59,8 +59,8 @@ export class StreamWatcherHelper extends StartableWatcher {
 }
 
 export class RESTWatcher extends WatcherStarter {
-  constructor({client, path, params, delay}: {client: Twitter, path: string, params?: any, delay: number}) {
-    const helper = new RESTWatcherHelper({client, path, params, delay});
+  constructor({ client, path, params, delay }: { client: Twitter, path: string, params?: any, delay: number }) {
+    const helper = new RESTWatcherHelper({ client, path, params, delay });
     super(helper);
   }
 }
@@ -71,10 +71,10 @@ class RESTWatcherHelper extends StartableWatcher {
   private lastTweet: Tweet;
   private timer: NodeJS.Timer;
 
-  constructor({client, path, params, delay}: {client: Twitter, path: string, params?: any, delay: number}) {
+  constructor({ client, path, params, delay }: { client: Twitter, path: string, params?: any, delay: number }) {
     super();
     this.delay = delay;
-    this.getter = new TimelineGetter({client, path, params});
+    this.getter = new TimelineGetter({ client, path, params });
   }
 
   async start(): Promise<void> {

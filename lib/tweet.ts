@@ -1,5 +1,5 @@
-import {URL} from 'url';
-import {BigNumber} from 'bignumber.js';
+import { URL } from 'url';
+import { BigNumber } from 'bignumber.js';
 
 class JSONHolder {
   raw: any;
@@ -55,7 +55,7 @@ export class User extends JSONHolder {
   raw: any;
   status?: Tweet;
   createdAt?: Date;
-  
+
   constructor(raw: any) {
     super(raw);
     this.upgrade();
