@@ -5,6 +5,7 @@ class JSONHolder {
   raw: any;
 
   constructor(raw: any) {
+    if (raw instanceof JSONHolder) throw new Error();
     this.raw = raw;
   }
 
