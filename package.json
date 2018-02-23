@@ -17,9 +17,12 @@
   },
   "homepage": "https://github.com/hiroto7/twitter-timeline-watcher#readme",
   "dependencies": {
-    "@types/node": "^9.4.6",
     "bignumber.js": "^6.0.0",
     "twitter": "^1.7.1"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@types/node": "^9.4.6",
+    "typedoc": "^0.10.0",
+    "typescript": "^2.7.2"
+  }
 }
